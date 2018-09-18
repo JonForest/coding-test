@@ -1,7 +1,9 @@
 const express = require('express')
 const fs = require('fs')
+const { getTopWords } = require('./utils/tags')
 const app = express()
 const rootPostDir = './server/assets/posts'
+
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*")
@@ -17,11 +19,16 @@ app.get('/', function (req, res) {
 app.get('/post/:slug', function (req, res) {
   const contents = fs.readFileSync(`${rootPostDir}/${req.params.slug}.md`, 'utf8')
   const sections = contents.split('===').filter(item => !!item)
-  res.json({post: {content: sections[1]}})
+  res.json({
+    post: {
+      content: sections[1],
+      tags: getTopWords(sections[1])
+    }
+  })
 })
 
 app.get('/posts', function (req, res) {
-  const files = fs.readdirSync(rootPostDir, 'urf8')
+  const files = fs.readdirSync(rootPostDir, 'utf8')
   const posts = files.map(fileName => {
     const contents = fs.readFileSync(`${rootPostDir}/${fileName}`, 'utf8')
     const headerBlock = contents.split('===').filter(item => !!item)[0]
@@ -37,4 +44,4 @@ app.get('/posts', function (req, res) {
  
 app.listen(3000, function () {
   console.log('Dev app listening on port 3000!');
-});
+})
